@@ -1,0 +1,15 @@
+<library path="src">
+    <class name="chat" type="rqt_chat.chat.ChatPlugin" base_class_type="rqt_gui_py::Plugin">
+      <description>
+        Chat rqt plugin
+      </description>
+      <qtgui>
+        <group>
+          <label>Human-Robot Interaction</label>
+        </group>
+        <label>Chat interface</label>
+        <icon type="theme">system-help</icon>
+        <statustip>ROS4HRI-compatible chat plugin.</statustip>
+      </qtgui>
+    </class>
+  </library>
