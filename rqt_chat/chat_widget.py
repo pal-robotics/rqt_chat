@@ -1,6 +1,8 @@
 import os
 from ament_index_python import get_resource
-from python_qt_binding import loadUi, QtCore
+from python_qt_binding import loadUi
+from python_qt_binding.QtGui import QFont, QColor, QIcon
+from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtWidgets import QWidget, QListWidgetItem
 
 from rclpy.action import ActionServer
@@ -23,12 +25,21 @@ class ChatWidget(QWidget):
         ui_file = os.path.join(package_path, 'share', 'rqt_chat', 'resource', 'chat.ui')
         loadUi(ui_file, self)
 
+        self.font = QFont()
+        self.font.setPointSize(12)
+
+        self.sendIcon = QIcon(os.path.join(package_path, 'share', 'rqt_chat', 'resource', 'send-circle.svg'))
+        self.sendBtn.setIcon(self.sendIcon)
+
+        self.userColor = QColor(15, 73, 44)
+        self.userIcon = QIcon(os.path.join(package_path, 'share', 'rqt_chat', 'resource', 'face.svg'))
+        self.robotColor = QColor(153, 60, 53)
+        self.robotIcon = QIcon(os.path.join(package_path, 'share', 'rqt_chat', 'resource', 'robot.svg'))
+        self.bgColor = QColor(240, 240, 240)
+
         # connect the sendBtn button to the send method
         self.sendBtn.clicked.connect(self.on_send)
         self.userInput.returnPressed.connect(self.on_send)
-
-        self.msgHistory.setSpacing(3)
-        self.msgHistory.addItem(self.robot_input("[you can start chatting with the robot here]"))
 
         # publish the list of tracked 'voices'
         latching_qos = QoSProfile(depth=1,
@@ -47,20 +58,24 @@ class ChatWidget(QWidget):
     def user_input(self, msg):
 
         item = QListWidgetItem(msg)
-        item.setTextAlignment(QtCore.Qt.AlignRight)
-        item.setForeground(QtCore.Qt.blue)
-        item.setBackground(QtCore.Qt.lightGray)
-        item.setFlags(QtCore.Qt.NoItemFlags)
+        item.setTextAlignment(Qt.AlignRight)
+        item.setForeground(self.userColor)
+        item.setBackground(self.bgColor)
+        item.setFlags(Qt.NoItemFlags)
+        item.setFont(self.font)
+        item.setIcon(self.userIcon)
 
         return item
 
     def robot_input(self, msg):
 
         item = QListWidgetItem(msg)
-        item.setTextAlignment(QtCore.Qt.AlignLeft)
-        item.setForeground(QtCore.Qt.red)
-        item.setBackground(QtCore.Qt.lightGray)
-        item.setFlags(QtCore.Qt.NoItemFlags)
+        item.setTextAlignment(Qt.AlignLeft)
+        item.setForeground(self.robotColor)
+        item.setBackground(self.bgColor)
+        item.setFlags(Qt.NoItemFlags)
+        item.setFont(self.font)
+        item.setIcon(self.robotIcon)
 
         return item
 
