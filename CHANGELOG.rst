@@ -2,8 +2,8 @@
 Changelog for package rqt_chat
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2024-10-08)
+------------------
 * return a TTS Result in the /say action callback
 * add minimal readme
 * refine UI
