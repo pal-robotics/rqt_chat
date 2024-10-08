@@ -97,5 +97,6 @@ class ChatWidget(QWidget):
         # add the msg to the msgHistory as a robot input
         self.msgHistory.addItem(self.robot_input(goal_handle.request.input))
         goal_handle.succeed()
+        return TTS.Result()
 
 
