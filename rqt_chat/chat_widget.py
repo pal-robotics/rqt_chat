@@ -11,6 +11,11 @@ from rclpy.qos import QoSProfile, QoSDurabilityPolicy
 from hri_msgs.msg import LiveSpeech, IdsList
 from tts_msgs.action import TTS
 
+import time
+
+import queue
+import threading
+
 SPEAKER_NAME = "anonymous_speaker"
 SPEECH_TOPIC = f"/humans/voices/{SPEAKER_NAME}/speech"
 
@@ -20,6 +25,8 @@ class ChatWidget(QWidget):
 
         self._node = node
         self._plugin = plugin
+
+        self.msgQueue = queue.Queue()
 
         _, package_path = get_resource('packages', 'rqt_chat')
         ui_file = os.path.join(package_path, 'share', 'rqt_chat', 'resource', 'chat.ui')
@@ -53,6 +60,10 @@ class ChatWidget(QWidget):
         # create a ROS action server for the '/say' action (type: tts_msgs/action/TTS)
         self._action_server = ActionServer(self._node, TTS, '/tts_engine/tts', self._say_cb)
 
+        # start a thread to update the msgHistory list
+        self.update_thread = threading.Thread(target=self.update_msg_list)
+        self.update_thread.start()
+
         self._node.get_logger().info("loaded")
 
     def user_input(self, msg):
@@ -79,6 +90,13 @@ class ChatWidget(QWidget):
 
         return item
 
+    def update_msg_list(self):
+    
+        while True:
+            msg = self.msgQueue.get()
+            self.msgHistory.addItem(msg)
+
+
     def on_send(self, flags=None):
         # get the text from the input field, and add it to the QListWidget model
         msg = self.userInput.text()
@@ -94,9 +112,23 @@ class ChatWidget(QWidget):
 
 
     def _say_cb(self, goal_handle):
-        # add the msg to the msgHistory as a robot input
-        self.msgHistory.addItem(self.robot_input(goal_handle.request.input))
+
+        txt = goal_handle.request.input
+        self.msgQueue.put(self.robot_input(txt))
+
+
+        for word in txt.split():
+            feedback = TTS.Feedback()
+            feedback.word = word
+            goal_handle.publish_feedback(feedback)
+            self._node.get_logger().info(f"Robot saying <{word}>...")
+            time.sleep(0.3)
+
+        self._node.get_logger().info(f"Robot done speaking!")
+
         goal_handle.succeed()
-        return TTS.Result()
+        result = TTS.Result()
+        result.error_msg = ""
+        return result
 
 
