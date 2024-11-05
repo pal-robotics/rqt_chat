@@ -2,6 +2,13 @@
 Changelog for package rqt_chat
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix linting issues
+* add Apache 2 LICENSE + CONTRIBUTING.md
+* fix race issue + publish word feedback
+* Contributors: Séverin Lemaignan
+
 1.0.0 (2024-10-08)
 ------------------
 * return a TTS Result in the /say action callback
