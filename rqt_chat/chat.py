@@ -2,6 +2,7 @@ from qt_gui.plugin import Plugin
 
 from .chat_widget import ChatWidget
 
+
 class ChatPlugin(Plugin):
     def __init__(self, context):
         super(ChatPlugin, self).__init__(context)
@@ -13,5 +14,3 @@ class ChatPlugin(Plugin):
 
         self._widget = ChatWidget(self._node, self)
         context.add_widget(self._widget)
-
-

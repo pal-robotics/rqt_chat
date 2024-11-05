@@ -19,6 +19,7 @@ import threading
 SPEAKER_NAME = "anonymous_speaker"
 SPEECH_TOPIC = f"/humans/voices/{SPEAKER_NAME}/speech"
 
+
 class ChatWidget(QWidget):
     def __init__(self, node, plugin):
         super(ChatWidget, self).__init__()
@@ -35,13 +36,25 @@ class ChatWidget(QWidget):
         self.font = QFont()
         self.font.setPointSize(12)
 
-        self.sendIcon = QIcon(os.path.join(package_path, 'share', 'rqt_chat', 'resource', 'send-circle.svg'))
+        self.sendIcon = QIcon(os.path.join(package_path,
+                                           'share',
+                                           'rqt_chat',
+                                           'resource',
+                                           'send-circle.svg'))
         self.sendBtn.setIcon(self.sendIcon)
 
         self.userColor = QColor(15, 73, 44)
-        self.userIcon = QIcon(os.path.join(package_path, 'share', 'rqt_chat', 'resource', 'face.svg'))
+        self.userIcon = QIcon(os.path.join(package_path,
+                                           'share',
+                                           'rqt_chat',
+                                           'resource',
+                                           'face.svg'))
         self.robotColor = QColor(153, 60, 53)
-        self.robotIcon = QIcon(os.path.join(package_path, 'share', 'rqt_chat', 'resource', 'robot.svg'))
+        self.robotIcon = QIcon(os.path.join(package_path,
+                                            'share',
+                                            'rqt_chat',
+                                            'resource',
+                                            'robot.svg'))
         self.bgColor = QColor(240, 240, 240)
 
         # connect the sendBtn button to the send method
@@ -49,13 +62,15 @@ class ChatWidget(QWidget):
         self.userInput.returnPressed.connect(self.on_send)
 
         # publish the list of tracked 'voices'
-        latching_qos = QoSProfile(depth=1,
-            durability=QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL)
-        self.speaker_list_pub = self._node.create_publisher(IdsList, "/humans/voices/tracked", latching_qos)
+        latching_qos = QoSProfile(
+                depth=1,
+                durability=QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL)
+        self.speaker_list_pub = self._node.create_publisher(IdsList,
+                                                            "/humans/voices/tracked",
+                                                            latching_qos)
         self.speaker_list_pub.publish(IdsList(ids=[SPEAKER_NAME]))
 
         self.speech_pub = self._node.create_publisher(LiveSpeech, SPEECH_TOPIC, 10)
-
 
         # create a ROS action server for the '/say' action (type: tts_msgs/action/TTS)
         self._action_server = ActionServer(self._node, TTS, '/tts_engine/tts', self._say_cb)
@@ -91,11 +106,9 @@ class ChatWidget(QWidget):
         return item
 
     def update_msg_list(self):
-    
         while True:
             msg = self.msgQueue.get()
             self.msgHistory.addItem(msg)
-
 
     def on_send(self, flags=None):
         # get the text from the input field, and add it to the QListWidget model
@@ -110,12 +123,10 @@ class ChatWidget(QWidget):
         self.msgHistory.addItem(self.user_input(msg))
         self.speech_pub.publish(live_speech)
 
-
     def _say_cb(self, goal_handle):
 
         txt = goal_handle.request.input
         self.msgQueue.put(self.robot_input(txt))
-
 
         for word in txt.split():
             feedback = TTS.Feedback()
@@ -124,11 +135,9 @@ class ChatWidget(QWidget):
             self._node.get_logger().info(f"Robot saying <{word}>...")
             time.sleep(0.3)
 
-        self._node.get_logger().info(f"Robot done speaking!")
+        self._node.get_logger().info("Robot done speaking!")
 
         goal_handle.succeed()
         result = TTS.Result()
         result.error_msg = ""
         return result
-
-
