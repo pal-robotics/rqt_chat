@@ -2,8 +2,8 @@
 Changelog for package rqt_chat
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.1 (2024-11-05)
+------------------
 * fix linting issues
 * add Apache 2 LICENSE + CONTRIBUTING.md
 * fix race issue + publish word feedback
