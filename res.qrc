@@ -2,6 +2,7 @@
     <qresource prefix="/icons">
         <file>resource/send-circle.svg</file>
         <file>resource/robot.svg</file>
-        <file>resource/face.svg</file>      
+        <file>resource/face.svg</file>   
+        <file>resource/waiting-icon.svg</file>      
     </qresource>
 </RCC>
