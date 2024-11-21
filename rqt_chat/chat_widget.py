@@ -5,12 +5,14 @@ import time
 from ament_index_python import get_resource
 from python_qt_binding import loadUi
 from python_qt_binding.QtGui import QFont, QColor, QIcon
-from python_qt_binding.QtCore import Qt, QMetaObject, pyqtSignal
+from python_qt_binding.QtCore import Qt, pyqtSignal
 from python_qt_binding.QtWidgets import QWidget, QListWidgetItem
 from rclpy.action import ActionServer
 from rclpy.qos import QoSProfile, QoSDurabilityPolicy
 from hri_msgs.msg import LiveSpeech, IdsList
 from tts_msgs.action import TTS
+from hri_msgs.msg import Expression
+import re
 
 SPEAKER_NAME = "anonymous_speaker"
 SPEECH_TOPIC = f"/humans/voices/{SPEAKER_NAME}/speech"
@@ -66,10 +68,12 @@ class ChatWidget(QWidget):
             IdsList, "/humans/voices/tracked", latching_qos)
         self.speech_pub = self._node.create_publisher(
             LiveSpeech, SPEECH_TOPIC, 10)
-        self.speaker_list_pub.publish(IdsList(ids=[SPEAKER_NAME]))
 
         self._action_server = ActionServer(
             self._node, TTS, '/tts_engine/tts', self._say_cb)
+
+        self.expression_pub = self._node.create_publisher(
+            Expression, "/robot_face/expression", 10)
 
         # Background thread for message updates
         self.update_thread = threading.Thread(target=self.update_msg_list)
@@ -135,11 +139,23 @@ class ChatWidget(QWidget):
 
     def _say_cb(self, goal_handle):
         # Remove "Processing..." message when the robot starts responding
-        QMetaObject.invokeMethod(
-            self.msgHistory, "takeItem", Qt.QueuedConnection, len(self.msgHistory) - 1)
+        if self.msgHistory.count() > 0:  # Ensure there are items to remove
+            self.msgHistory.takeItem(self.msgHistory.count() - 1)
 
         # Process robot response
         txt = goal_handle.request.input
+        match = re.search(r"<set expression\((.*?)\)>", txt)
+        if match:
+            expression_name = match.group(1)
+            self._node.get_logger().info(
+                f"Extracted expression: {expression_name}")
+
+            expression_msg = Expression()
+            expression_msg.expression = expression_name
+            self.expression_pub.publish(expression_msg)
+            start_marker = f"<set expression({expression_name})>"
+            txt = txt.replace(start_marker, "").strip()
+
         self.msgQueue.put(self.robot_input(txt))
 
         for word in txt.split():
