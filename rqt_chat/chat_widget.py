@@ -126,6 +126,8 @@ class ChatWidget(QWidget):
         # Publish user input
         live_speech = LiveSpeech()
         live_speech.final = msg
+        self.speaker_list_pub.publish(IdsList(ids=[SPEAKER_NAME]))
+        time.sleep(0.5)
         self.speech_pub.publish(live_speech)
 
         # Add "Processing..." message
