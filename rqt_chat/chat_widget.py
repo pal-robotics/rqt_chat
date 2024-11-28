@@ -11,8 +11,6 @@ from rclpy.action import ActionServer
 from rclpy.qos import QoSProfile, QoSDurabilityPolicy
 from hri_msgs.msg import LiveSpeech, IdsList
 from tts_msgs.action import TTS
-from hri_msgs.msg import Expression
-import re
 
 SPEAKER_NAME = "anonymous_speaker"
 SPEECH_TOPIC = f"/humans/voices/{SPEAKER_NAME}/speech"
@@ -56,14 +54,15 @@ class ChatWidget(QWidget):
         self.processingIcon = QIcon(os.path.join(
             package_path, 'share', 'rqt_chat', 'resource', 'waiting-icon.svg'))
 
-        # Signal-slot connection
+        # connect the sendBtn button to the send method
         self.sendBtn.clicked.connect(self.on_send)
         self.userInput.returnPressed.connect(self.on_send)
         self.msg_received.connect(self.msgHistory.addItem)
 
-        # Publishers and Action Server
+        # publish the list of tracked 'voices'
         latching_qos = QoSProfile(
-            depth=1, durability=QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL)
+            depth=1,
+            durability=QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL)
         self.speaker_list_pub = self._node.create_publisher(
             IdsList, "/humans/voices/tracked", latching_qos)
         self.speech_pub = self._node.create_publisher(
@@ -72,16 +71,14 @@ class ChatWidget(QWidget):
         self._action_server = ActionServer(
             self._node, TTS, '/tts_engine/tts', self._say_cb)
 
-        self.expression_pub = self._node.create_publisher(
-            Expression, "/robot_face/expression", 10)
-
-        # Background thread for message updates
+        # create a ROS action server for the '/say' action (type: tts_msgs/action/TTS)
         self.update_thread = threading.Thread(target=self.update_msg_list)
         self.update_thread.start()
 
-        self._node.get_logger().info("Chat widget loaded.")
+        self._node.get_logger().info("loaded")
 
     def user_input(self, msg):
+
         item = QListWidgetItem(msg)
         item.setTextAlignment(Qt.AlignRight)
         item.setForeground(self.userColor)
@@ -89,6 +86,7 @@ class ChatWidget(QWidget):
         item.setFlags(Qt.NoItemFlags)
         item.setFont(self.font)
         item.setIcon(self.userIcon)
+
         return item
 
     def robot_input(self, msg, icon=None):
@@ -144,18 +142,6 @@ class ChatWidget(QWidget):
 
         # Process robot response
         txt = goal_handle.request.input
-        match = re.search(r"<set expression\((.*?)\)>", txt)
-        if match:
-            expression_name = match.group(1)
-            self._node.get_logger().info(
-                f"Extracted expression: {expression_name}")
-
-            expression_msg = Expression()
-            expression_msg.expression = expression_name
-            self.expression_pub.publish(expression_msg)
-            start_marker = f"<set expression({expression_name})>"
-            txt = txt.replace(start_marker, "").strip()
-
         self.msgQueue.put(self.robot_input(txt))
 
         for word in txt.split():
@@ -166,7 +152,7 @@ class ChatWidget(QWidget):
             time.sleep(0.3)
 
         # Action success
-        self._node.get_logger().info("Robot finished speaking!")
+        self._node.get_logger().info("Robot done speaking!")
         goal_handle.succeed()
         result = TTS.Result()
         result.error_msg = ""
