@@ -15,6 +15,7 @@ setup(
                                                  'resource/send-circle.svg',
                                                  'resource/robot.svg',
                                                  'resource/face.svg',
+                                                 'resource/waiting-icon.svg',
                                                  ]),
     ],
     install_requires=['setuptools'],
