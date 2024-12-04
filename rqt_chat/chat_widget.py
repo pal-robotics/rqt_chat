@@ -10,6 +10,7 @@ from python_qt_binding.QtWidgets import QWidget, QListWidgetItem
 from rclpy.action import ActionServer
 from rclpy.qos import QoSProfile, QoSDurabilityPolicy
 from hri_msgs.msg import LiveSpeech, IdsList
+from hri_actions_msgs.msg import Intent
 from tts_msgs.action import TTS
 
 SPEAKER_NAME = "anonymous_speaker"
@@ -47,7 +48,13 @@ class ChatWidget(QWidget):
         self.robotColor = QColor(153, 60, 53)
         self.robotIcon = QIcon(os.path.join(
             package_path, 'share', 'rqt_chat', 'resource', 'robot.svg'))
+
         self.bgColor = QColor(240, 240, 240)
+
+        self.intentColor = QColor(214, 233, 220)
+        self.intentIcon = QIcon(os.path.join(
+            package_path, 'share', 'rqt_chat', 'resource', 'intent.svg'))
+        self.intentBgColor = QColor(98, 164, 132)
 
         # Grey for processing messages
         self.processingColor = QColor(100, 100, 100)
@@ -68,6 +75,9 @@ class ChatWidget(QWidget):
         self.speech_pub = self._node.create_publisher(
             LiveSpeech, SPEECH_TOPIC, 10)
 
+        self.intents_sub = self._node.create_subscription(
+            Intent, "/intents",
+            self.on_intent, 1)
         self._action_server = ActionServer(
             self._node, TTS, '/tts_engine/tts', self._say_cb)
 
@@ -80,7 +90,7 @@ class ChatWidget(QWidget):
     def user_input(self, msg):
 
         item = QListWidgetItem(msg)
-        item.setTextAlignment(Qt.AlignRight)
+        item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
         item.setForeground(self.userColor)
         item.setBackground(self.bgColor)
         item.setFlags(Qt.NoItemFlags)
@@ -91,7 +101,7 @@ class ChatWidget(QWidget):
 
     def robot_input(self, msg, icon=None):
         item = QListWidgetItem(msg)
-        item.setTextAlignment(Qt.AlignLeft)
+        item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         item.setForeground(self.robotColor)
         item.setBackground(self.bgColor)
         item.setFlags(Qt.NoItemFlags)
@@ -99,6 +109,26 @@ class ChatWidget(QWidget):
         if icon:
             item.setIcon(icon)
         return item
+
+    def intent_input(self, msg):
+        item = QListWidgetItem()
+        text = f"Intent: [{msg.intent}]"
+
+        if msg.data:
+            text += f"\nData: {msg.data}"
+
+        item.setText(text)
+        item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        item.setForeground(self.intentColor)
+        item.setBackground(self.intentBgColor)
+        item.setFlags(Qt.NoItemFlags)
+        item.setFont(self.font)
+        item.setIcon(self.intentIcon)
+        return item
+
+    def on_intent(self, msg):
+        if self.showIntentsCheckbox.isChecked():
+            self.msgQueue.put(self.intent_input(msg))
 
     def processing_message(self):
         item = QListWidgetItem("Processing...")

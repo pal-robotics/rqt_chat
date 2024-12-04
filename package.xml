@@ -13,6 +13,7 @@
   <exec_depend>rclpy</exec_depend>
   <exec_depend>tts_msgs</exec_depend>
   <exec_depend>hri_msgs</exec_depend>
+  <exec_depend>hri_actions_msgs</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
