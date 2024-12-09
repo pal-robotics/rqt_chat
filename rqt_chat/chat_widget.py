@@ -15,6 +15,7 @@ from tts_msgs.action import TTS
 
 SPEAKER_NAME = "anonymous_speaker"
 SPEECH_TOPIC = f"/humans/voices/{SPEAKER_NAME}/speech"
+PROCESSING_MSG = QListWidgetItem("Processing...")
 
 
 class ChatWidget(QWidget):
@@ -28,6 +29,7 @@ class ChatWidget(QWidget):
         self._plugin = plugin
         self.msgQueue = queue.Queue()
         self.update_thread_running = True
+        self.processing_item = None
 
         # Load UI file
         _, package_path = get_resource('packages', 'rqt_chat')
@@ -131,7 +133,7 @@ class ChatWidget(QWidget):
             self.msgQueue.put(self.intent_input(msg))
 
     def processing_message(self):
-        item = QListWidgetItem("Processing...")
+        item = PROCESSING_MSG
         item.setTextAlignment(Qt.AlignLeft)
         item.setForeground(self.processingColor)
         item.setBackground(self.bgColor)
@@ -163,15 +165,14 @@ class ChatWidget(QWidget):
         self.speech_pub.publish(live_speech)
 
         # Add "Processing..." message
-        self.msgQueue.put(self.processing_message())
+        self.processing_item = self.processing_message()
+        self.msgHistory.addItem(self.processing_item)
 
     def _say_cb(self, goal_handle):
         # Find and remove the "Processing..." message
-        for i in range(self.msgHistory.count()):
-            item = self.msgHistory.item(i)
-            if item.text() == "Processing...":
-                self.msgHistory.takeItem(i)
-                break  # Only remove the first occurrence
+        if self.processing_item:
+            self.msgHistory.takeItem(self.msgHistory.row(self.processing_item))
+            self.processing_item = None
 
         # Process robot response
         txt = goal_handle.request.input
