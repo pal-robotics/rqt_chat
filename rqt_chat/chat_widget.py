@@ -166,9 +166,12 @@ class ChatWidget(QWidget):
         self.msgQueue.put(self.processing_message())
 
     def _say_cb(self, goal_handle):
-        # Remove "Processing..." message when the robot starts responding
-        if self.msgHistory.count() > 0:  # Ensure there are items to remove
-            self.msgHistory.takeItem(self.msgHistory.count() - 1)
+        # Find and remove the "Processing..." message
+        for i in range(self.msgHistory.count()):
+            item = self.msgHistory.item(i)
+            if item.text() == "Processing...":
+                self.msgHistory.takeItem(i)
+                break  # Only remove the first occurrence
 
         # Process robot response
         txt = goal_handle.request.input
