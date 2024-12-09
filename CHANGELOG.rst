@@ -2,8 +2,8 @@
 Changelog for package rqt_chat
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2024-12-09)
+------------------
 * optionally display incoming intents in the chat window
 * Merge branch 'add-processing-feedback' into 'main'
   Add processing feedback
