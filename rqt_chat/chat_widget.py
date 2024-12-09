@@ -29,7 +29,6 @@ from tts_msgs.action import TTS
 
 SPEAKER_NAME = "anonymous_speaker"
 SPEECH_TOPIC = f"/humans/voices/{SPEAKER_NAME}/speech"
-PROCESSING_MSG = QListWidgetItem("Processing...")
 
 
 class ChatWidget(QWidget):
@@ -43,7 +42,6 @@ class ChatWidget(QWidget):
         self._plugin = plugin
         self.msgQueue = queue.Queue()
         self.update_thread_running = True
-        self.processing_item = None
 
         # Load UI file
         _, package_path = get_resource('packages', 'rqt_chat')
@@ -76,6 +74,13 @@ class ChatWidget(QWidget):
         self.processingColor = QColor(100, 100, 100)
         self.processingIcon = QIcon(os.path.join(
             package_path, 'share', 'rqt_chat', 'resource', 'waiting-icon.svg'))
+        self.PROCESSING_MSG = QListWidgetItem("Processing...")
+        self.PROCESSING_MSG.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.PROCESSING_MSG.setForeground(self.processingColor)
+        self.PROCESSING_MSG.setBackground(self.bgColor)
+        self.PROCESSING_MSG.setFlags(Qt.NoItemFlags)
+        self.PROCESSING_MSG.setFont(self.font)
+        self.PROCESSING_MSG.setIcon(self.processingIcon)
 
         # connect the sendBtn button to the send method
         self.sendBtn.clicked.connect(self.on_send)
@@ -146,16 +151,6 @@ class ChatWidget(QWidget):
         if self.showIntentsCheckbox.isChecked():
             self.msgQueue.put(self.intent_input(msg))
 
-    def processing_message(self):
-        item = PROCESSING_MSG
-        item.setTextAlignment(Qt.AlignLeft)
-        item.setForeground(self.processingColor)
-        item.setBackground(self.bgColor)
-        item.setFlags(Qt.NoItemFlags)
-        item.setFont(self.font)
-        item.setIcon(self.processingIcon)
-        return item
-
     def update_msg_list(self):
         while self.update_thread_running:
             msg = self.msgQueue.get()
@@ -179,14 +174,13 @@ class ChatWidget(QWidget):
         self.speech_pub.publish(live_speech)
 
         # Add "Processing..." message
-        self.processing_item = self.processing_message()
-        self.msgHistory.addItem(self.processing_item)
+        self.msgHistory.addItem(self.PROCESSING_MSG)
 
     def _say_cb(self, goal_handle):
-        # Find and remove the "Processing..." message
-        if self.processing_item:
-            self.msgHistory.takeItem(self.msgHistory.row(self.processing_item))
-            self.processing_item = None
+
+        # Find and remove the "Processing..." message if any
+        if self.msgHistory.row(self.PROCESSING_MSG) >= 0:
+            self.msgHistory.takeItem(self.msgHistory.row(self.PROCESSING_MSG))
 
         # Process robot response
         txt = goal_handle.request.input
