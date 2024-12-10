@@ -2,6 +2,14 @@
 Changelog for package rqt_chat
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* clean up the 'PROCESSING_MSG' logic
+* add license headers
+* processing item as constant
+* avoid overwriting said text
+* Contributors: Sara Cooper, Séverin Lemaignan
+
 1.1.0 (2024-12-09)
 ------------------
 * optionally display incoming intents in the chat window
