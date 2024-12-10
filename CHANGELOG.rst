@@ -2,8 +2,8 @@
 Changelog for package rqt_chat
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.2.0 (2024-12-10)
+------------------
 * clean up the 'PROCESSING_MSG' logic
 * add license headers
 * processing item as constant
