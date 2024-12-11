@@ -33,6 +33,7 @@ SPEECH_TOPIC = f"/humans/voices/{SPEAKER_NAME}/speech"
 PKG_PATH = Path(get_resource('packages', 'rqt_chat')[1])
 RESOURCE_PATH = PKG_PATH / 'share' / 'rqt_chat' / 'resource'
 
+
 class IntentItem(QListWidgetItem):
 
     IntentType = QListWidgetItem.UserType + 1
@@ -54,6 +55,7 @@ class IntentItem(QListWidgetItem):
         self.setFont(self.font)
         self.setIcon(QIcon(str(RESOURCE_PATH / 'intent.svg')))
 
+
 class ProcessingSpinnerItem(QListWidgetItem):
 
     ProcessingSpinnerType = QListWidgetItem.UserType + 2
@@ -73,6 +75,7 @@ class ProcessingSpinnerItem(QListWidgetItem):
         self.setFont(self.font)
         self.setIcon(self.processingIcon)
 
+
 class ChatWidget(QWidget):
     # Signal for thread-safe message addition
     msg_received = pyqtSignal(QListWidgetItem)
@@ -86,11 +89,11 @@ class ChatWidget(QWidget):
         self.update_thread_running = True
 
         # Load UI file
-        ui_file  = RESOURCE_PATH / 'chat.ui'
+        ui_file = RESOURCE_PATH / 'chat.ui'
         loadUi(str(ui_file), self)
 
-        self.msgHistory.setStyleSheet("QListWidget:item { margin-bottom: 10px; background-color: #f7f7f7; }")
-
+        self.msgHistory.setStyleSheet(
+                "QListWidget:item { margin-bottom: 10px; background-color: #f7f7f7; }")
 
         # Fonts and Icons
         self.font = QFont()
@@ -170,7 +173,7 @@ class ChatWidget(QWidget):
         self.msgHistory.addItem(item)
         if item.type() == IntentItem.IntentType \
            and not self.showIntentsCheckbox.isChecked():
-               item.setHidden(True)
+            item.setHidden(True)
 
         self.msgHistory.scrollToBottom()
 
