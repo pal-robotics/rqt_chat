@@ -16,6 +16,7 @@ setup(
                                                  'resource/robot.svg',
                                                  'resource/face.svg',
                                                  'resource/intent.svg',
+                                                 'resource/spinner.gif',
                                                  'resource/waiting-icon.svg',
                                                  ]),
     ],

@@ -18,14 +18,16 @@ import threading
 import time
 from ament_index_python import get_resource
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QFont, QColor, QIcon
-from python_qt_binding.QtCore import Qt, pyqtSignal
-from python_qt_binding.QtWidgets import QWidget, QListWidgetItem
+from python_qt_binding.QtGui import QFont, QColor, QIcon, QPainter, QPainterPath
+from python_qt_binding.QtCore import Qt, pyqtSignal, QTimer, QRectF
+from python_qt_binding.QtWidgets import QWidget, QListWidgetItem, QHBoxLayout, QLabel, QSizePolicy
 from rclpy.action import ActionServer
 from rclpy.qos import QoSProfile, QoSDurabilityPolicy
 from hri_msgs.msg import LiveSpeech, IdsList
 from hri_actions_msgs.msg import Intent
 from tts_msgs.action import TTS
+
+from .chat_widgets import ChatListWidget
 
 SPEAKER_NAME = "anonymous_speaker"
 SPEECH_TOPIC = f"/humans/voices/{SPEAKER_NAME}/speech"
@@ -34,51 +36,16 @@ PKG_PATH = Path(get_resource('packages', 'rqt_chat')[1])
 RESOURCE_PATH = PKG_PATH / 'share' / 'rqt_chat' / 'resource'
 
 
-class IntentItem(QListWidgetItem):
+class AsyncMsg:
 
-    IntentType = QListWidgetItem.UserType + 1
-
-    def __init__(self, msg):
-        super(IntentItem, self).__init__(type=self.IntentType)
-
-        text = f"Intent: [{msg.intent}]"
-
-        if msg.data:
-            text += f"\nData: {msg.data}"
-
-        self.font = QFont()
-        self.font.setPointSize(12)
-        self.setText(text)
-        self.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        self.setForeground(QColor(114, 133, 120))
-        self.setFlags(Qt.NoItemFlags)
-        self.setFont(self.font)
-        self.setIcon(QIcon(str(RESOURCE_PATH / 'intent.svg')))
-
-
-class ProcessingSpinnerItem(QListWidgetItem):
-
-    ProcessingSpinnerType = QListWidgetItem.UserType + 2
-
-    def __init__(self):
-        super(ProcessingSpinnerItem, self).__init__(type=self.ProcessingSpinnerType)
-
-        self.font = QFont()
-        self.font.setPointSize(12)
-
-        self.processingIcon = QIcon(str(RESOURCE_PATH / 'waiting-icon.svg'))
-
-        self.setText("Processing...")
-        self.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        self.setForeground(QColor(100, 100, 100))
-        self.setFlags(Qt.NoItemFlags)
-        self.setFont(self.font)
-        self.setIcon(self.processingIcon)
+    def __init__(self, type=None, data=None):
+        self.type = type
+        self.data = data
 
 
 class ChatWidget(QWidget):
     # Signal for thread-safe message addition
-    msg_received = pyqtSignal(QListWidgetItem)
+    msg_received = pyqtSignal(AsyncMsg)
 
     def __init__(self, node, plugin):
         super(ChatWidget, self).__init__()
@@ -92,8 +59,8 @@ class ChatWidget(QWidget):
         ui_file = RESOURCE_PATH / 'chat.ui'
         loadUi(str(ui_file), self)
 
-        self.msgHistory.setStyleSheet(
-                "QListWidget:item { margin-bottom: 10px; background-color: #f7f7f7; }")
+        self.msgHistory = ChatListWidget(RESOURCE_PATH)
+        self.verticalLayout.insertWidget(0, self.msgHistory)
 
         # Fonts and Icons
         self.font = QFont()
@@ -101,9 +68,9 @@ class ChatWidget(QWidget):
         self.sendIcon = QIcon(str(RESOURCE_PATH / 'send-circle.svg'))
         self.sendBtn.setIcon(self.sendIcon)
 
-        self.userColor = QColor(15, 73, 44)
+        self.user_color = "#3498db"
         self.userIcon = QIcon(str(RESOURCE_PATH / 'face.svg'))
-        self.robotColor = QColor(153, 60, 53)
+        self.robot_color = "#373737"
         self.robotIcon = QIcon(str(RESOURCE_PATH / 'robot.svg'))
 
         self.bgColor = QColor(240, 240, 240)
@@ -111,10 +78,12 @@ class ChatWidget(QWidget):
         # connect the sendBtn button to the send method
         self.sendBtn.clicked.connect(self.on_send)
         self.userInput.returnPressed.connect(self.on_send)
-        self.msg_received.connect(self.add_item)
+        self.msg_received.connect(self.add_remote_msg)
 
         # connect the showIntentsCheckbox to the toggle_intents method
-        self.showIntentsCheckbox.stateChanged.connect(self.toggle_intents)
+        self.showIntentsCheckbox.stateChanged.connect(
+            self.msgHistory.toggle_intents)
+        self.msgHistory.toggle_intents(self.showIntentsCheckbox.isChecked())
 
         # publish the list of tracked 'voices'
         latching_qos = QoSProfile(
@@ -135,45 +104,23 @@ class ChatWidget(QWidget):
         self.update_thread = threading.Thread(target=self.update_msg_list)
         self.update_thread.start()
 
-        self._node.get_logger().info("loaded")
-
     def user_input(self, msg):
+        self.msgHistory.addChatItem(
+            msg, align_right=True, bg_color=self.user_color, icon=self.userIcon)
 
-        item = QListWidgetItem(msg)
-        item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        item.setForeground(self.userColor)
-        item.setBackground(self.bgColor)
-        item.setFlags(Qt.NoItemFlags)
-        item.setFont(self.font)
-        item.setIcon(self.userIcon)
-
-        return item
-
-    def robot_input(self, msg, icon=None):
-        item = QListWidgetItem(msg)
-        item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        item.setForeground(self.robotColor)
-        item.setBackground(self.bgColor)
-        item.setFlags(Qt.NoItemFlags)
-        item.setFont(self.font)
-        item.setIcon(self.robotIcon)
-
-        return item
+        self.msgHistory.scrollToBottom()
 
     def on_intent(self, msg):
-        self.msgQueue.put(IntentItem(msg))
+        self.msgQueue.put(AsyncMsg(type="Intent", data=msg))
 
-    def toggle_intents(self, state):
-        for i in range(self.msgHistory.count()):
-            item = self.msgHistory.item(i)
-            if item.type() == IntentItem.IntentType:
-                item.setHidden(not state)
-
-    def add_item(self, item):
-        self.msgHistory.addItem(item)
-        if item.type() == IntentItem.IntentType \
-           and not self.showIntentsCheckbox.isChecked():
-            item.setHidden(True)
+    def add_remote_msg(self, msg):
+        if msg.type == "Intent":
+            self.msgHistory.addIntentItem(msg.data)
+        elif msg.type == "Robot":
+            self.msgHistory.addChatItem(
+                msg.data, align_right=False, bg_color=self.robot_color, icon=self.robotIcon)
+        else:
+            self._node.get_logger().warn(f"Unknown message type: {msg.type}")
 
         self.msgHistory.scrollToBottom()
 
@@ -190,7 +137,7 @@ class ChatWidget(QWidget):
         self.userInput.setFocus()
 
         # Add user message
-        self.add_item(self.user_input(msg))
+        self.user_input(msg)
 
         # Publish user input
         live_speech = LiveSpeech()
@@ -200,22 +147,13 @@ class ChatWidget(QWidget):
         self.speech_pub.publish(live_speech)
 
         # Add "Processing..." message
-        self.add_item(ProcessingSpinnerItem())
+        self.msgHistory.addProcessingItem()
 
     def _say_cb(self, goal_handle):
 
-        # Find and remove the "Processing..." message if any
-        indices = []
-        for i in range(self.msgHistory.count()):
-            item = self.msgHistory.item(i)
-            if item.type() == ProcessingSpinnerItem.ProcessingSpinnerType:
-                indices.append(i)
-        for i in indices:
-            self.msgHistory.takeItem(i)
-
         # Process robot response
         txt = goal_handle.request.input
-        self.msgQueue.put(self.robot_input(txt))
+        self.msgQueue.put(AsyncMsg(type="Robot", data=txt))
 
         for word in txt.split():
             feedback = TTS.Feedback()
