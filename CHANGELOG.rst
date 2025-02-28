@@ -2,8 +2,8 @@
 Changelog for package rqt_chat
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.4.0 (2025-02-28)
+------------------
 * [minor] linting
 * rewrote rqt_chat to use more advanced widgets + fix the intent display
 * Contributors: Séverin Lemaignan
