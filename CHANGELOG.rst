@@ -2,6 +2,12 @@
 Changelog for package rqt_chat
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [minor] linting
+* rewrote rqt_chat to use more advanced widgets + fix the intent display
+* Contributors: Séverin Lemaignan
+
 1.3.0 (2024-12-11)
 ------------------
 * code refactoring + hide/show all past intents when ticking the checkbox
