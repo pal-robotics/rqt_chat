@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QListWidget, QListWidgetItem, QVBoxLayout, QLabel, QHBoxLayout, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QWidget, QListWidget, \
+    QListWidgetItem, QVBoxLayout, QLabel, QHBoxLayout, QSizePolicy
 from PyQt5.QtGui import QPainter, QColor, QPainterPath, QMovie, QIcon, QFont
 from PyQt5.QtCore import Qt, QRectF, QSize, QTimer, pyqtSignal
 import sys
@@ -6,19 +7,15 @@ from pathlib import Path
 
 
 class ContentWidget(QWidget):
-    """The inner content widget with rounded corners and text"""
-
     def __init__(self, text, bg_color="#ffffff",  parent=None):
         super().__init__(parent)
         self.text = text
         self.bg_color = bg_color
         self.setAttribute(Qt.WA_TranslucentBackground)
 
-        # Create layout
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 8, 10, 8)
 
-        # Add label with word wrapping
         self.label = QLabel(self.text)
         self.label.setStyleSheet(
             "color: white; background-color: transparent;")
@@ -41,8 +38,6 @@ class ContentWidget(QWidget):
 
 
 class BubbleWidget(QWidget):
-    """Container widget that handles alignment and sizing"""
-
     def __init__(self, text, align_right=False, bg_color="#ffffff", width_percent=70, parent=None):
         super().__init__(parent)
         self.text = text
@@ -61,7 +56,6 @@ class BubbleWidget(QWidget):
         self.updateLayout()
 
     def updateLayout(self):
-        """Set up or update the layout based on alignment"""
         # Clear existing layout
         while self.layout.count():
             item = self.layout.takeAt(0)
@@ -77,7 +71,6 @@ class BubbleWidget(QWidget):
             self.layout.addStretch(1)
 
     def updateContentWidth(self):
-        """Update content width based on parent width"""
         width = int(self.width() * (self.width_percent / 100))
         self.content.setFixedWidth(width)
 
@@ -123,7 +116,6 @@ class IntentWidget(QWidget):
 
 
 class ProcessingWidget(QWidget):
-    """Widget showing a loading GIF that auto-destructs"""
 
     remove_requested = pyqtSignal(object)
 
@@ -132,12 +124,10 @@ class ProcessingWidget(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.duration = duration
 
-        # Set up layout
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setAlignment(Qt.AlignCenter)
 
-        # Create spinner with animated GIF
         self.spinner = QLabel()
         self.spinner.setAlignment(Qt.AlignCenter)
         self.spinner.setStyleSheet("background-color: transparent;")
@@ -156,7 +146,6 @@ class ProcessingWidget(QWidget):
         self.destruct_timer.start(self.duration)
 
     def remove_from_list(self):
-        """Remove this widget from its parent list widget"""
         self.movie.stop()
         self.remove_requested.emit(self)
 
@@ -165,7 +154,6 @@ class ProcessingWidget(QWidget):
 
 
 class ChatListWidget(QListWidget):
-    """Custom list widget optimized for chat-like display"""
 
     resource_path = Path(__file__).parent / 'resource'
 
@@ -207,8 +195,6 @@ class ChatListWidget(QListWidget):
                 item.setHidden(not visible)
 
     def addChatItem(self, text, align_right=False, bg_color="#3498db", icon=None):
-        """Add a chat bubble to the list"""
-
         if self.last_processing_item:
             self.removeItemWidget(self.last_processing_item)
 
@@ -227,8 +213,6 @@ class ChatListWidget(QListWidget):
         return item
 
     def addIntentItem(self, msg):
-        """Add an intent widget to the list"""
-
         # Create list item
         item = QListWidgetItem(self)
         intent = IntentWidget(msg)
@@ -242,8 +226,6 @@ class ChatListWidget(QListWidget):
         return item
 
     def addProcessingItem(self):
-        """Add a processing widget to the list"""
-
         # Create list item
         item = QListWidgetItem(self)
         processing = ProcessingWidget()
@@ -270,7 +252,6 @@ class ChatListWidget(QListWidget):
                 break
 
     def updateItemSizes(self):
-        """Update all items sizes based on content"""
         width = self.viewport().width()
         for i in range(self.count()):
             item = self.item(i)
@@ -280,13 +261,11 @@ class ChatListWidget(QListWidget):
                 item.setSizeHint(QSize(width, widget.sizeHint().height()))
 
     def eventFilter(self, obj, event):
-        """Watch for resize events on the viewport"""
         if obj is self.viewport() and event.type() == event.Resize:
             self.resizeTimer.start(50)
         return super().eventFilter(obj, event)
 
     def resizeEvent(self, event):
-        """Handle list widget resize events"""
         super().resizeEvent(event)
         self.resizeTimer.start(50)
 
@@ -315,9 +294,6 @@ if __name__ == '__main__':
             messages = [
                 "Short text",
                 "Medium length text that might wrap depending on the width",
-                "This is a much longer text that will definitely need to wrap to multiple lines when displayed in our chat bubble. It's designed to demonstrate how text wrapping works in our custom widget.",
-                "Another short one",
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl eget ultricies tincidunt, nunc nisl aliquet nunc, quis aliquam nisl nunc quis nisl. Donec euismod, nisl eget ultricies tincidunt."
             ]
 
             for i, msg in enumerate(messages):

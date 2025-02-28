@@ -18,9 +18,9 @@ import threading
 import time
 from ament_index_python import get_resource
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QFont, QColor, QIcon, QPainter, QPainterPath
-from python_qt_binding.QtCore import Qt, pyqtSignal, QTimer, QRectF
-from python_qt_binding.QtWidgets import QWidget, QListWidgetItem, QHBoxLayout, QLabel, QSizePolicy
+from python_qt_binding.QtGui import QFont, QColor, QIcon
+from python_qt_binding.QtCore import pyqtSignal
+from python_qt_binding.QtWidgets import QWidget
 from rclpy.action import ActionServer
 from rclpy.qos import QoSProfile, QoSDurabilityPolicy
 from hri_msgs.msg import LiveSpeech, IdsList
