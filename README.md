@@ -4,14 +4,12 @@
 
 ![rqt_chat screenshot](doc/screenshot.png)
 
-
 ---
 
 ## Features
 - Publishes user messages as `hri_msgs/msg/LiveSpeech` messages on the `/humans/voices/anonymous_speaker/speech` topic.
 - Displays robot messages by calling the TTS action `/tts_engine/tts` (`tts_msgs/action/TTS`).
 - Integrates seamlessly with the `rqt` framework.
-
 ---
 
 ## Prerequisites
@@ -34,18 +32,18 @@ Before setting up the `rqt_chat` project, ensure you have the following installe
    sudo apt install python3-colcon-common-extensions
    ```
 
-4. **ros4hri**  
-   Since ros4hri is not available as a pre-built package for ROS2 Humble, you will need to build it from source (instructions provided below).
+
 
 ---
 
 ## Installation Steps
 
 ### 1. Clone the Repository
-Clone the `rqt_chat` repository into your ROS2 workspace:
+Clone the `rqt_chat` repository into your ROS2 workspace and `pal_tts_msgs`:
 ```bash
 cd ~/ros2_ws/src
 git clone https://github.com/pal-robotics/rqt_chat.git
+git clone https://github.com/pal-robotics/pal_tts_msgs.git
 ```
 
 ### 2. Install Dependencies
@@ -56,42 +54,20 @@ rosdep update
 rosdep install --from-paths src --ignore-src -r -y
 ```
 
-### 3. Build ros4hri from Source
-ros4hri is required for this project but is not available as a pre-built package for ROS2 Humble. Follow these steps to build it from source:
-
-1. Clone the ros4hri repository:
-   ```bash
-   cd ~/ros2_ws/src
-   git clone https://github.com/ros4hri/ros4hri.git
-   ```
-
-2. Build the ros4hri package:
-   ```bash
-   cd ~/ros2_ws
-   colcon build --packages-select ros4hri
-   ```
-
-3. Source the workspace:
-   ```bash
-   source ~/ros2_ws/install/setup.bash
-   ```
-
----
-
-## Build Instructions
-
-### 1. Build the Project
-Build the `rqt_chat` project using colcon:
-```bash
-cd ~/ros2_ws
-colcon build --packages-select rqt_chat
+### 3. Build tts_msgs 
+Build tts_msgs and source it by running the command :
 ```
-
-### 2. Source the Workspace
-After building, source the workspace to make the `rqt_chat` plugin available:
-```bash
+colcon build --packages-select tts_msgs --cmake-args -DCMAKE_INSTALL_PREFIX=~/ros2_ws/install
 source ~/ros2_ws/install/setup.bash
 ```
+
+### 4. Build rqt_chat 
+Build rqt_chat and source it by running the command :
+```
+colcon build --packages-select rqt_chat
+source ~/ros2_ws/install/setup.bash
+```
+
 
 ---
 
@@ -109,6 +85,9 @@ You should get a new rqt window as shown below:
 In the rqt interface:
 1. Go to the menu bar and select **Plugins**.
 2. Navigate to **Human-Robot Interaction** and load the **Chat interface plugin**.
+
+You will get a chat interface like this :
+![rqt_chat_HRI](./doc/image.png)
 
 ---
 
