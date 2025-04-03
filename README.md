@@ -37,9 +37,6 @@ Before setting up the `rqt_chat` project, ensure you have the following installe
 4. **ros4hri**  
    Since ros4hri is not available as a pre-built package for ROS2 Humble, you will need to build it from source (instructions provided below).
 
-5. **tts_msgs**  
-   The tts_msgs package is required for TTS functionality. Instructions to build it from source are provided below.
-
 ---
 
 ## Installation Steps
@@ -79,26 +76,6 @@ ros4hri is required for this project but is not available as a pre-built package
    source ~/ros2_ws/install/setup.bash
    ```
 
-4. Build tts_msgs from Source
-The tts_msgs package is required for TTS functionality. Follow these steps to build it from source:
-
-1. Clone the tts_msgs repository:
-   ```bash
-   cd ~/ros2_ws/src
-   git clone https://github.com/ros4hri/tts_msgs.git
-   ```
-
-2. Build the tts_msgs package:
-   ```bash
-   cd ~/ros2_ws
-   colcon build --packages-select tts_msgs
-   ```
-
-3. Source the workspace:
-   ```bash
-   source ~/ros2_ws/install/setup.bash
-   ```
-
 ---
 
 ## Build Instructions
@@ -121,10 +98,12 @@ source ~/ros2_ws/install/setup.bash
 ## Running the Plugin
 
 ### 1. Launch rqt
-Start rqt:
+Open any new terminal and type `rqt` to start rqt GUI:
 ```bash
 rqt
 ```
+You should get a new rqt window as shown below:
+![rqt_chat](./doc/rqt_chat1.png)
 
 ### 2. Load the rqt_chat Plugin
 In the rqt interface:
@@ -146,9 +125,6 @@ source ~/ros2_ws/install/setup.bash
 
 ### Build Errors
 If you encounter build errors, ensure all prerequisites are installed and that you have the correct versions of ROS2 and Python.
-
-### ModuleNotFoundError for tts_msgs
-Ensure the `tts_msgs` package is built and sourced as described in the installation steps.
 
 ---
 
