@@ -100,7 +100,6 @@ class ChatWidget(QWidget):
         self._action_server = ActionServer(
             self._node, TTS, '/tts_engine/tts', self._say_cb)
 
-        # create a ROS action server for the '/say' action (type: tts_msgs/action/TTS)
         self.update_thread = threading.Thread(target=self.update_msg_list)
         self.update_thread.start()
 
