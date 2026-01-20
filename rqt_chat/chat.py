@@ -28,3 +28,6 @@ class ChatPlugin(Plugin):
 
         self._widget = ChatWidget(self._node, self)
         context.add_widget(self._widget)
+
+    def shutdown_plugin(self):
+        self._widget.close()
