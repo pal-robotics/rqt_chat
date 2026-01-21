@@ -171,5 +171,6 @@ class ChatWidget(QWidget):
     def closeEvent(self, event):
         # Clean up background thread
         self.update_thread_running = False
+        self.msgQueue.put(AsyncMsg(type="Robot"))
         self.update_thread.join()
         super(ChatWidget, self).closeEvent(event)
